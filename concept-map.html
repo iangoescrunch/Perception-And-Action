@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Concept Map · More Degrees of Freedom Than Any Mechanism Can Govern</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #faf6ef;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #3a3633;
+    --ink-muted: #7a716a;
+    --rule: #e3dccf;
+    --accent: #9c3d1f;
+    --serif: 'Crimson Pro', Georgia, serif;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', Menlo, monospace;
+    --tab1: #9c3d1f;
+    --tab2: #2c5d6e;
+    --tab3: #4a6b3d;
+    --tab4: #5d4a6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  header {
+    padding: 0.75rem 1.25rem 0.55rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    font-size: 0.74rem;
+    color: var(--ink-muted);
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.7rem 0.75rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab:hover {
+    color: var(--ink);
+    background: rgba(156, 61, 31, 0.04);
+  }
+
+  .tab.active { font-weight: 600; }
+
+  .tab[data-tab="1"].active { border-bottom-color: var(--tab1); color: var(--tab1); }
+  .tab[data-tab="2"].active { border-bottom-color: var(--tab2); color: var(--tab2); }
+  .tab[data-tab="3"].active { border-bottom-color: var(--tab3); color: var(--tab3); }
+  .tab[data-tab="4"].active { border-bottom-color: var(--tab4); color: var(--tab4); }
+
+  main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  #graph-container {
+    flex: 1;
+    position: relative;
+    background: var(--paper);
+    overflow: hidden;
+  }
+
+  #graph {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+  }
+
+  #graph.grabbing { cursor: grabbing; }
+
+  #sidebar {
+    width: 280px;
+    border-left: 1px solid var(--rule);
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 1.25rem 1.25rem 1.5rem;
+    flex-shrink: 0;
+  }
+
+  #sidebar h2 {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  #sidebar .node-type {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2px;
+    margin-bottom: 0.85rem;
+    font-weight: 500;
+  }
+
+  #sidebar .node-citation {
+    font-family: var(--serif);
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.85rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  #sidebar .node-description {
+    font-family: var(--serif);
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 1.5rem;
+  }
+
+  #sidebar h3 {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 0.55rem;
+    font-weight: 500;
+  }
+
+  #sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  #sidebar li {
+    padding: 0.45rem 0.65rem;
+    background: var(--paper);
+    border-radius: 3px;
+    margin-bottom: 0.35rem;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  #sidebar .placeholder {
+    color: var(--ink-muted);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.93rem;
+    line-height: 1.55;
+  }
+
+  .node circle {
+    cursor: pointer;
+    stroke: var(--surface);
+    stroke-width: 2.5;
+    transition: stroke-width 0.15s ease;
+  }
+
+  .node text {
+    font-family: var(--sans);
+    font-size: 11px;
+    pointer-events: none;
+    fill: var(--ink);
+    user-select: none;
+    font-weight: 500;
+  }
+
+  .node.selected circle {
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+
+  .node.dimmed { opacity: 0.18; }
+
+  .link {
+    stroke: var(--ink-muted);
+    stroke-opacity: 0.3;
+    fill: none;
+  }
+
+  .link.cross-tab {
+    stroke-dasharray: 4 3;
+    stroke: var(--rule);
+  }
+
+  .link.highlighted {
+    stroke: var(--accent);
+    stroke-opacity: 0.7;
+    stroke-width: 2;
+  }
+
+  .link.dimmed { stroke-opacity: 0.05; }
+
+  .legend {
+    position: absolute;
+    bottom: 0.85rem;
+    left: 0.85rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.65rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .legend-row:last-child { margin-bottom: 0; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-line { width: 18px; height: 0; border-top: 2px solid #95857a; }
+  .legend-line.dashed { border-top-style: dashed; }
+
+  .controls {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    display: flex;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.3rem;
+    font-family: var(--mono);
+  }
+
+  .controls button {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 1rem;
+    line-height: 1;
+    font-family: var(--mono);
+    font-weight: 500;
+    transition: background 0.15s ease;
+  }
+
+  .controls button:hover {
+    background: rgba(156, 61, 31, 0.08);
+    color: var(--accent);
+  }
+
+  .controls button[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -22px;
+    right: 0;
+    background: rgba(26, 26, 26, 0.9);
+    color: var(--paper);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { width: 220px; padding: 1rem; }
+    .tab { font-size: 0.6rem; padding: 0.55rem 0.3rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Concept Map · More Degrees of Freedom Than Any Mechanism Can Govern</h1>
+    <p>Click a node to inspect. Drag nodes to rearrange. Drag empty space or use the controls to pan and zoom.</p>
+  </header>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="1">1 · Degrees of Freedom</button>
+    <button class="tab" data-tab="2">2 · Soft Assembly</button>
+    <button class="tab" data-tab="3">3 · Across Scales</button>
+    <button class="tab" data-tab="4">4 · Hybrid Position</button>
+  </div>
+  <main>
+    <div id="graph-container">
+      <svg id="graph"></svg>
+      <div class="controls">
+        <button id="zoom-in" title="Zoom in">+</button>
+        <button id="zoom-out" title="Zoom out">−</button>
+        <button id="zoom-reset" title="Reset view">⟲</button>
+      </div>
+      <div class="legend">
+        <div class="legend-row"><span class="legend-swatch" style="background:#1a1a1a"></span> Theorist</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#4a6b3d"></span> Construct</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#9c3d1f"></span> Empirical phenomenon</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#5d4a6b"></span> Method / Tool</div>
+        <div class="legend-row"><span class="legend-line"></span> Within-tab link</div>
+        <div class="legend-row"><span class="legend-line dashed"></span> Cross-tab link</div>
+      </div>
+    </div>
+    <aside id="sidebar">
+      <p class="placeholder">Click any node in the graph to see its citation, description, and connections.</p>
+    </aside>
+  </main>
+</div>
+
+<script>
+const NODE_COLORS = {
+  theorist: "#1a1a1a",
+  construct: "#4a6b3d",
+  phenomenon: "#9c3d1f",
+  method: "#5d4a6b",
+  hub: "#6b2a14"
+};
+
+const TYPE_LABELS = {
+  theorist: "Theorist",
+  construct: "Construct",
+  phenomenon: "Empirical phenomenon",
+  method: "Method / Tool",
+  hub: "Synthesis"
+};
+
+const NODE_RADIUS = {
+  theorist: 13,
+  construct: 11,
+  phenomenon: 11,
+  method: 11,
+  hub: 18,
+  ghost: 7
+};
+
+const TABS = {
+  1: {
+    title: "Degrees of Freedom",
+    nodes: [
+      { id: "bernstein", label: "Bernstein (1967)", type: "theorist", citation: "Bernstein, N. A. (1967). The co-ordination and regulation of movements. Pergamon Press.", description: "Russian physiologist who formalized the degrees-of-freedom problem: the human body has redundant peripheral DOFs that exceed any executive controller's specification capacity. Coordination must therefore be solved without central enumeration of joint angles." },
+      { id: "dof", label: "Degrees of freedom problem", type: "construct", citation: "Bernstein (1967); Turvey, Fitch, & Tuller (1982)", description: "Coordination requires mastering many redundant peripheral DOFs without an executive that specifies each. The system must converge on functional behavior despite possessing more independent variables than any controller can manage in advance." },
+      { id: "redundancy", label: "Motor redundancy", type: "construct", citation: "Latash (2012)", description: "Multiple motor solutions exist for any given task. The number of muscle activation patterns that produce identical limb trajectories is large. Redundancy is not an obstacle but a resource for adaptation." },
+      { id: "underactuation", label: "Underactuation", type: "construct", citation: "Spong (1995)", description: "Mechanical systems with fewer actuators than DOFs. The body is underactuated. The triple inverted pendulum on a cart is underactuated. Both must achieve goals through coupling rather than direct specification." },
+      { id: "motor-equivalence", label: "Motor equivalence", type: "construct", citation: "Lashley (1933)", description: "The same goal can be reached by different effector configurations. Lashley's prior formulation set the conceptual stage for Bernstein's DOF problem." },
+      { id: "lashley", label: "Lashley (1933)", type: "theorist", citation: "Lashley, K. S. (1933). Integrative functions of the cerebellum. American Journal of Physiology.", description: "First formulated the motor equivalence problem. Demonstrated that motor goals are not specified by fixed muscle activation patterns." },
+      { id: "freezing", label: "Freezing & freeing DOFs", type: "phenomenon", citation: "Vereijken et al. (1992); Newell (1985)", description: "In early skill acquisition, learners freeze DOFs by rigid coupling. With practice, they release DOFs and incorporate them into a controllable dynamical system. The trajectory of skill acquisition is a trajectory through a state space of recruited DOFs." },
+      { id: "pendulum", label: "Inha triple pendulum", type: "phenomenon", citation: "Baek et al. (2024)", description: "Triple inverted pendulum on a belt-driven cart. RL-trained neural controller stabilizes the system at multiple equilibria and recovers from severe disturbance. Engineering exhibit of Bernstein's DOF problem solved without a stored solution." },
+      { id: "kinematic-chain", label: "Kinematic chain", type: "construct", citation: "Günther & Wagner (2016)", description: "Articulated rigid body model. The standing human body is a multi-link inverted pendulum with HAT, thigh, shank, and foot segments. Joint torques and angles are the natural state-space coordinates." }
+    ],
+    links: [
+      ["bernstein", "dof"], ["lashley", "motor-equivalence"], ["motor-equivalence", "dof"],
+      ["dof", "redundancy"], ["dof", "underactuation"], ["redundancy", "freezing"],
+      ["underactuation", "pendulum"], ["kinematic-chain", "pendulum"], ["kinematic-chain", "dof"],
+      ["bernstein", "freezing"]
+    ],
+    crossLinks: [
+      { source: "dof", target: "soft-assembly", tab: 2 },
+      { source: "freezing", target: "thelen-smith", tab: 2 },
+      { source: "pendulum", target: "hybrid-position", tab: 4 }
+    ]
+  },
+
+  2: {
+    title: "Soft Assembly",
+    nodes: [
+      { id: "thelen-smith", label: "Thelen & Smith (1994)", type: "theorist", citation: "Thelen, E., & Smith, L. B. (1994). A dynamic systems approach to the development of cognition and action. MIT Press.", description: "Operationalized the dynamic systems approach across a developmental research program. Reaching, stepping, and the A-not-B error are trajectories of a coupled brain-body-environment system through a high-dimensional state space." },
+      { id: "kkt", label: "Kugler, Kelso, Turvey (1980)", type: "theorist", citation: "Kugler, P. N., Kelso, J. A. S., & Turvey, M. T. (1980). On the concept of coordinative structures as dissipative structures. North-Holland.", description: "Formalized Bernstein's question through the framework of coordinative structures and dissipative dynamics. Coordination is self-organization under task and biomechanical constraint, not the imposition of stored solutions." },
+      { id: "soft-assembly", label: "Soft assembly", type: "construct", citation: "Thelen & Smith (1994)", description: "Behavior emerges from coupled component dynamics under task and biomechanical constraint. Patterns are assembled on the fly from available components rather than retrieved from stored programs." },
+      { id: "coordinative-structures", label: "Coordinative structures", type: "construct", citation: "Kugler, Kelso, & Turvey (1980)", description: "Functional groupings of muscles and joints temporarily linked to act as a single unit, reducing the effective DOFs the controller must manage. Soft assembly's mechanism." },
+      { id: "attractor", label: "Attractor", type: "construct", citation: "Strogatz (2015)", description: "A stable region of state space toward which system trajectories converge. In behavioral terms, a stable behavioral pattern. Walking is an attractor. Reaching trajectories settle to attractors." },
+      { id: "bifurcation", label: "Bifurcation", type: "construct", citation: "Strogatz (2015)", description: "Qualitative change in system behavior as a control parameter crosses a critical threshold. Developmental transitions (e.g., walking onset) are bifurcations, not gradual accumulation." },
+      { id: "control-parameter", label: "Control parameter", type: "construct", citation: "Thelen & Smith (1994)", description: "A variable whose continuous change produces qualitative reorganization of the system at critical values. Body weight, neural connectivity, vocabulary size all function as control parameters in development." },
+      { id: "dynamic-field", label: "Dynamic field theory", type: "method", citation: "Thelen, Schöner, Scheier, & Smith (2001)", description: "Formal dynamical model of cognition. Activation fields evolve in real time according to differential equations. Perception, memory, and action are coupled fields with time-dependent dynamics." },
+      { id: "anotb", label: "A-not-B error", type: "phenomenon", citation: "Thelen et al. (2001)", description: "Infants under 12 months reach to a previously rewarded location even after watching the reward move. Long treated as evidence about object concepts. Thelen et al. showed it emerges from the coupled dynamics of looking, memory, and motor planning, with no need for static representations." },
+      { id: "infant-stepping", label: "Infant stepping", type: "phenomenon", citation: "Thelen & Smith (1994)", description: "Disappears around 2 months, reappears as walking near 12 months. The maturationist account fails: stepping persists supine, water restores it, weight gain predicts decline. Coordination depends on coupled dynamics of muscle, mass, posture, and surface." },
+      { id: "self-organization", label: "Self-organization", type: "construct", citation: "Kelso (1995)", description: "Spontaneous emergence of coherent macroscopic behavior from local interactions among many components, without a central executive. The general principle that licenses soft assembly." }
+    ],
+    links: [
+      ["kkt", "coordinative-structures"], ["coordinative-structures", "soft-assembly"],
+      ["thelen-smith", "soft-assembly"], ["soft-assembly", "self-organization"],
+      ["thelen-smith", "attractor"], ["thelen-smith", "bifurcation"], ["thelen-smith", "control-parameter"],
+      ["attractor", "infant-stepping"], ["control-parameter", "infant-stepping"],
+      ["thelen-smith", "dynamic-field"], ["dynamic-field", "anotb"], ["kkt", "self-organization"]
+    ],
+    crossLinks: [
+      { source: "soft-assembly", target: "dof", tab: 1 },
+      { source: "attractor", target: "lorenz", tab: 3 },
+      { source: "bifurcation", target: "logistic-map", tab: 3 },
+      { source: "self-organization", target: "weak-emergence", tab: 3 },
+      { source: "dynamic-field", target: "chemero", tab: 4 }
+    ]
+  },
+
+  3: {
+    title: "Across Scales",
+    nodes: [
+      { id: "lorenz", label: "Lorenz (1963)", type: "theorist", citation: "Lorenz, E. N. (1963). Deterministic nonperiodic flow. Journal of the Atmospheric Sciences, 20(2), 130–141.", description: "Discovered that simple deterministic equations can generate aperiodic, sensitively dependent trajectories. The Lorenz attractor became the canonical strange attractor. Founding result of modern chaos theory." },
+      { id: "feigenbaum", label: "Feigenbaum (1978)", type: "theorist", citation: "Feigenbaum, M. J. (1978). Quantitative universality. Journal of Statistical Physics, 19(1), 25–52.", description: "Discovered universal constants in the period-doubling route to chaos. δ ≈ 4.669 appears in any system that approaches chaos via period doubling, regardless of substrate. Established that chaos has substrate-independent structure." },
+      { id: "mandelbrot", label: "Mandelbrot (1982)", type: "theorist", citation: "Mandelbrot, B. B. (1982). The fractal geometry of nature. Freeman.", description: "Formalized fractal geometry. Self-similarity across scales is a generic property of natural systems. Behavioral time series and biological networks both exhibit fractal scaling." },
+      { id: "gleick", label: "Gleick (1987)", type: "theorist", citation: "Gleick, J. (1987). Chaos: Making a new science. Viking.", description: "Synthesized the chaos research program for a general audience. Established that nonlinear dynamics constitutes a coherent science with its own methods and explanatory commitments." },
+      { id: "west", label: "West (2017)", type: "theorist", citation: "West, G. B. (2017). Scale. Penguin.", description: "Quarter-power scaling laws across mammalian metabolic rate. Network optimization principles generate macro-level regularities from local rules. Same logic produces superlinear scaling in cities and finite-time singularities in unbounded growth." },
+      { id: "goldstein", label: "Goldstein (1999)", type: "theorist", citation: "Goldstein, J. (1999). Emergence as a construct. Emergence, 1(1), 49–72.", description: "Reframed emergence as a scientifically respectable construct via Bedau's weak emergence and Chalmers's taxonomy. Macro-level explanation does work that micro-level explanation cannot do, even when the micro-level is causally complete." },
+      { id: "bedau", label: "Bedau (1997)", type: "theorist", citation: "Bedau, M. A. (1997). Weak emergence. Philosophical Perspectives, 11, 375–399.", description: "Distinguished weak emergence (derivable from underlying mechanism only by simulation) from strong emergence (downward causation). Weak emergence is metaphysically modest, compatible with physicalism, scientifically indispensable." },
+      { id: "anderson", label: "Anderson (1972)", type: "theorist", citation: "Anderson, P. W. (1972). More is different. Science, 177(4047), 393–396.", description: "Reductionism does not entail constructionism. At each level of organization, new properties appear that cannot be deduced from the level below. Each level requires its own explanatory vocabulary." },
+      { id: "chalmers", label: "Chalmers (2006)", type: "theorist", citation: "Chalmers, D. J. (2006). Strong and weak emergence. In Clayton & Davies (Eds.), The re-emergence of emergence.", description: "Refined the taxonomy of emergence. Strong emergence implies novel causal powers irreducible to underlying mechanism. Weak emergence does not. Most scientific uses of emergence are weak." },
+      { id: "logistic-map", label: "Logistic map", type: "method", citation: "May (1976)", description: "x(n+1) = r·x(n)·(1-x(n)). Simplest possible model of population dynamics with density-dependent growth. Exhibits the full period-doubling route to chaos as r increases. Demonstrates that chaos arises from iteration, not coupled equations." },
+      { id: "strange-attractor", label: "Strange attractor", type: "construct", citation: "Lorenz (1963); Ruelle & Takens (1971)", description: "An attractor with fractal dimension. Bounded but never repeating. Trajectories on the attractor are sensitively dependent on initial conditions. Lorenz attractor has fractal dimension ~2.06." },
+      { id: "weak-emergence", label: "Weak emergence", type: "construct", citation: "Bedau (1997); Chalmers (2006)", description: "A property is weakly emergent when it can be derived from underlying mechanism only by simulation or observation, not by analytic reduction. Compatible with physicalism, sufficient for explanatory autonomy of macro-level theories." },
+      { id: "scaling-law", label: "Quarter-power scaling", type: "construct", citation: "West, Brown, & Enquist (1997)", description: "Metabolic rate scales as M^(3/4) across mammalian body sizes. Derives from optimization of space-filling, hierarchical distribution networks under three principles. Universal across orders of magnitude." },
+      { id: "favela-amon", label: "Favela & Amon (2023)", type: "theorist", citation: "Favela, L. H., & Amon, M. J. (2023). Reframing cognitive science as a complexity science. Cognitive Science, 47(4), e13280.", description: "Argued that cognitive science is best understood as a complexity science. Recurrence analysis, fractal dimension, and multi-scale entropy provide the formal apparatus that ecological psychology had previously lacked." }
+    ],
+    links: [
+      ["lorenz", "strange-attractor"], ["feigenbaum", "logistic-map"], ["logistic-map", "strange-attractor"],
+      ["mandelbrot", "strange-attractor"], ["gleick", "lorenz"], ["gleick", "feigenbaum"], ["gleick", "mandelbrot"],
+      ["west", "scaling-law"], ["anderson", "weak-emergence"], ["bedau", "weak-emergence"],
+      ["chalmers", "weak-emergence"], ["goldstein", "weak-emergence"], ["favela-amon", "weak-emergence"],
+      ["scaling-law", "weak-emergence"]
+    ],
+    crossLinks: [
+      { source: "strange-attractor", target: "attractor", tab: 2 },
+      { source: "logistic-map", target: "bifurcation", tab: 2 },
+      { source: "weak-emergence", target: "self-organization", tab: 2 },
+      { source: "favela-amon", target: "chemero", tab: 4 }
+    ]
+  },
+
+  4: {
+    title: "Hybrid Position",
+    nodes: [
+      { id: "gibson", label: "Gibson (1979)", type: "theorist", citation: "Gibson, J. J. (1979). The ecological approach to visual perception. Houghton Mifflin.", description: "Founded ecological psychology. Perception is direct pickup of environmental information; cognition need not interpose internal representations between organism and world. Affordances are opportunities for action that the environment offers the organism." },
+      { id: "chemero", label: "Chemero (2009)", type: "theorist", citation: "Chemero, A. (2009). Radical embodied cognitive science. MIT Press.", description: "Argued that cognition should be described in terms of agent-environment dynamics rather than computation and representation. An agent and its environment are one coupled dynamical system, not two interacting ones." },
+      { id: "affordance", label: "Affordance", type: "construct", citation: "Gibson (1979); Chemero (2003)", description: "Relation between an organism and its environment that affords specific actions. Not a property of the environment alone, not a property of the organism alone. Refined by Chemero (2003) as a relation rather than a feature." },
+      { id: "agent-env-coupling", label: "Agent-environment coupling", type: "construct", citation: "Beer (1995); Chemero (2009)", description: "Agent and environment as two coupled dynamical systems whose mutual interaction is jointly responsible for behavior. The trajectory through state space is what counts as cognition." },
+      { id: "marcus", label: "Marcus (2001, 2018)", type: "theorist", citation: "Marcus, G. F. (2001). The algebraic mind. MIT Press. Marcus, G. (2018). Deep learning: A critical appraisal. arXiv:1801.00631.", description: "Has run a structurally consistent critique against eliminative connectionism since 1998 and against deep learning since 2018. Architectures that fail systematic out-of-distribution generalization are not adequate explanations of cognition. Pattern matching is not reasoning." },
+      { id: "systematicity", label: "Systematicity", type: "construct", citation: "Fodor & Pylyshyn (1988); Marcus (2001)", description: "The capacity to understand novel combinations of familiar elements. If you can think 'John loves Mary' you can think 'Mary loves John.' Marcus argues this requires structured internal representations and rule-governed composition." },
+      { id: "van-gelder", label: "van Gelder (1995)", type: "theorist", citation: "van Gelder, T. (1995). What might cognition be, if not computation? Journal of Philosophy, 92(7), 345–381.", description: "Proposed the dynamical hypothesis: cognition is the behavior of a non-computational dynamical system. Used the Watt governor as the conceptual exemplar of dynamicism, contrasted against the Turing machine." },
+      { id: "watt-governor", label: "Watt governor", type: "method", citation: "van Gelder (1995); Eliasmith (1997); Bechtel (1998)", description: "Mechanical speed regulator that achieves stable engine output through coupled dynamics, with no representations or computations. Held up as the dynamicist alternative to Turing machine. Critics argue it is too simple to bear the explanatory weight cognition demands." },
+      { id: "eliasmith", label: "Eliasmith (1997)", type: "theorist", citation: "Eliasmith, C. (1997). Computation and dynamical models of mind. Minds and Machines, 7(4), 531–541.", description: "Critiqued van Gelder's dynamicism. The Watt governor is too simple to be a useful model for cognition. Real cognitive systems develop functional internal structure." },
+      { id: "bechtel", label: "Bechtel (1998)", type: "theorist", citation: "Bechtel, W. (1998). Representations and cognitive explanations. Cognitive Science, 22(3), 295–318.", description: "Argued that even Beer's evolved dynamical agents develop internal configurations that play standing-in roles for environmental features. The dynamicist anti-representationalism collapses under examination." },
+      { id: "hybrid-position", label: "Hybrid model", type: "hub", citation: "This essay", description: "The mature theoretical position. Dynamical apparatus is correct about the level at which behavior unfolds and the geometry that organizes it. Structural apparatus is correct that adequate explanation of generalization requires functional internal organization. Internal states and coupled dynamics are levels of description of one system, not competing ontologies." },
+      { id: "functional-internal", label: "Functional internal organization", type: "construct", citation: "Marcus (2001); Bechtel (1998)", description: "Parameter settings, learned weights, and organized state spaces that can be inspected, learned, and falsified. Required for systematic generalization. Compatible with dynamical descriptions of behavior at the temporal scale." }
+    ],
+    links: [
+      ["gibson", "affordance"], ["chemero", "affordance"], ["chemero", "agent-env-coupling"], ["gibson", "chemero"],
+      ["marcus", "systematicity"], ["marcus", "functional-internal"],
+      ["van-gelder", "watt-governor"], ["eliasmith", "watt-governor"], ["bechtel", "watt-governor"],
+      ["bechtel", "functional-internal"],
+      ["agent-env-coupling", "hybrid-position"], ["functional-internal", "hybrid-position"],
+      ["marcus", "hybrid-position"], ["chemero", "hybrid-position"]
+    ],
+    crossLinks: [
+      { source: "agent-env-coupling", target: "soft-assembly", tab: 2 },
+      { source: "hybrid-position", target: "pendulum", tab: 1 },
+      { source: "chemero", target: "favela-amon", tab: 3 }
+    ]
+  }
+};
+
+// Build a global lookup of all nodes for cross-tab references
+const ALL_NODES = {};
+Object.keys(TABS).forEach(tabKey => {
+  TABS[tabKey].nodes.forEach(n => {
+    ALL_NODES[n.id] = { ...n, tab: parseInt(tabKey) };
+  });
+});
+
+// ============================================================
+// State
+// ============================================================
+const svg = d3.select("#graph");
+let width, height;
+let simulation = null;
+let currentTab = 1;
+let currentZoom = d3.zoomIdentity;
+
+// Persistent zoom behavior on the SVG
+const zoom = d3.zoom()
+  .scaleExtent([0.4, 2.5])
+  .on("zoom", (event) => {
+    currentZoom = event.transform;
+    if (rootG) rootG.attr("transform", event.transform);
+  });
+
+let rootG = null; // The transformed group containing all graph elements
+
+// ============================================================
+// Render
+// ============================================================
+function renderTab(tabNum) {
+  currentTab = tabNum;
+  const data = TABS[tabNum];
+
+  const c = document.getElementById("graph-container");
+  width = c.clientWidth;
+  height = c.clientHeight;
+
+  svg.attr("viewBox", [0, 0, width, height])
+     .attr("width", width)
+     .attr("height", height);
+
+  // Clear previous render
+  svg.selectAll("*").remove();
+
+  // Reset zoom to identity for each tab
+  currentZoom = d3.zoomIdentity;
+
+  // Bind zoom behavior (filter out node drags so they don't trigger pan)
+  svg.call(zoom).on("dblclick.zoom", null);
+
+  // Root group that will be transformed by zoom
+  rootG = svg.append("g").attr("class", "zoom-root");
+
+  // Build node and link arrays
+  const nodes = data.nodes.map(n => ({ ...n }));
+  const inTabIds = new Set(nodes.map(n => n.id));
+
+  const links = data.links.map(([source, target]) => ({ source, target, type: "internal" }));
+
+  // Add ghost nodes for cross-tab links
+  data.crossLinks.forEach(l => {
+    if (!inTabIds.has(l.source)) return;
+    const targetNode = ALL_NODES[l.target];
+    if (!targetNode) return;
+    const ghostId = `__ghost_${l.target}`;
+    if (!nodes.find(n => n.id === ghostId)) {
+      nodes.push({
+        id: ghostId,
+        label: `${targetNode.label} →`,
+        type: "ghost",
+        ghostTab: l.tab,
+        ghostTarget: l.target,
+        description: `Cross-tab connection. Click to switch to Tab ${l.tab}: ${TABS[l.tab].title}.`,
+        citation: `See Tab ${l.tab}.`
+      });
+    }
+    links.push({ source: l.source, target: ghostId, type: "cross" });
+  });
+
+  // Initialize node positions in a soft circle so the simulation has good seed data
+  const cx = width / 2, cy = height / 2;
+  const seedRadius = Math.min(width, height) * 0.32;
+  nodes.forEach((n, i) => {
+    const angle = (i / nodes.length) * Math.PI * 2;
+    n.x = cx + seedRadius * Math.cos(angle);
+    n.y = cy + seedRadius * Math.sin(angle);
+  });
+
+  // Force simulation
+  simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links)
+      .id(d => d.id)
+      .distance(d => d.type === "cross" ? 130 : 95)
+      .strength(d => d.type === "cross" ? 0.25 : 0.6))
+    .force("charge", d3.forceManyBody().strength(-450))
+    .force("center", d3.forceCenter(cx, cy).strength(0.04))
+    .force("collision", d3.forceCollide().radius(d => (NODE_RADIUS[d.type] || 11) + 28))
+    .force("x", d3.forceX(cx).strength(0.04))
+    .force("y", d3.forceY(cy).strength(0.04))
+    .alpha(1)
+    .alphaDecay(0.025);
+
+  // Pre-warm: run the simulation in place for several ticks so the layout
+  // is mostly stabilized before the user sees it
+  for (let i = 0; i < 200; i++) simulation.tick();
+
+  // Now render with stabilized positions
+  const link = rootG.append("g")
+    .attr("class", "links")
+    .selectAll("line")
+    .data(links)
+    .join("line")
+    .attr("class", d => `link${d.type === "cross" ? " cross-tab" : ""}`)
+    .attr("stroke-width", d => d.type === "cross" ? 1 : 1.5);
+
+  const node = rootG.append("g")
+    .attr("class", "nodes")
+    .selectAll("g")
+    .data(nodes)
+    .join("g")
+    .attr("class", "node")
+    .attr("data-id", d => d.id);
+
+  node.append("circle")
+    .attr("r", d => NODE_RADIUS[d.type] || 11)
+    .attr("fill", d => d.type === "ghost" ? "#a89e90" : (NODE_COLORS[d.type] || "#7a716a"))
+    .attr("opacity", d => d.type === "ghost" ? 0.7 : 1);
+
+  node.append("text")
+    .attr("dy", d => (NODE_RADIUS[d.type] || 11) + 14)
+    .attr("text-anchor", "middle")
+    .style("font-size", d => d.type === "ghost" ? "10px" : "11px")
+    .style("font-style", d => d.type === "ghost" ? "italic" : "normal")
+    .style("fill", d => d.type === "ghost" ? "#7a716a" : "#1a1a1a")
+    .text(d => d.label);
+
+  // Drag behavior — attach to nodes only
+  const drag = d3.drag()
+    .filter(event => !event.button)
+    .on("start", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    })
+    .on("drag", (event, d) => {
+      d.fx = event.x;
+      d.fy = event.y;
+    })
+    .on("end", (event, d) => {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    });
+
+  node.call(drag);
+
+  // Click behavior on nodes
+  node.on("click", function(event, d) {
+    event.stopPropagation();
+    if (d.type === "ghost") {
+      switchTab(d.ghostTab);
+      setTimeout(() => selectNodeById(d.ghostTarget), 280);
+      return;
+    }
+    selectNode(d, node, link);
+  });
+
+  // Click on empty SVG to deselect
+  svg.on("click.select", () => {
+    node.classed("selected", false).classed("dimmed", false);
+    link.classed("highlighted", false).classed("dimmed", false);
+    showSidebarPlaceholder();
+  });
+
+  // Tick handler: update positions
+  simulation.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+
+  // Restart with low alpha so it settles smoothly from the pre-warmed state
+  simulation.alpha(0.15).restart();
+}
+
+// ============================================================
+// Selection
+// ============================================================
+function selectNode(d, allNodes, allLinks) {
+  const connected = new Set([d.id]);
+  allLinks.each(function(l) {
+    const sId = typeof l.source === "object" ? l.source.id : l.source;
+    const tId = typeof l.target === "object" ? l.target.id : l.target;
+    if (sId === d.id) connected.add(tId);
+    if (tId === d.id) connected.add(sId);
+  });
+
+  allNodes.classed("selected", n => n.id === d.id);
+  allNodes.classed("dimmed", n => !connected.has(n.id));
+  allLinks.classed("highlighted", l => {
+    const sId = typeof l.source === "object" ? l.source.id : l.source;
+    const tId = typeof l.target === "object" ? l.target.id : l.target;
+    return sId === d.id || tId === d.id;
+  });
+  allLinks.classed("dimmed", l => {
+    const sId = typeof l.source === "object" ? l.source.id : l.source;
+    const tId = typeof l.target === "object" ? l.target.id : l.target;
+    return sId !== d.id && tId !== d.id;
+  });
+
+  showSidebar(d, connected);
+}
+
+function selectNodeById(id) {
+  const target = svg.selectAll(".node").filter(d => d.id === id);
+  if (!target.empty()) target.dispatch("click");
+}
+
+function showSidebar(d, connectedIds) {
+  const sb = document.getElementById("sidebar");
+  const typeColor = NODE_COLORS[d.type] || "#7a716a";
+
+  const connections = Array.from(connectedIds || [])
+    .filter(id => id !== d.id && !id.startsWith("__ghost_"))
+    .map(id => {
+      const n = TABS[currentTab].nodes.find(x => x.id === id);
+      return n ? n.label : null;
+    })
+    .filter(Boolean);
+
+  let html = `
+    <span class="node-type" style="background:${typeColor}1f; color:${typeColor}">${TYPE_LABELS[d.type] || ""}</span>
+    <h2>${d.label}</h2>
+    <p class="node-citation">${d.citation || ""}</p>
+    <p class="node-description">${d.description || ""}</p>
+  `;
+
+  if (connections.length > 0) {
+    html += `<h3>Connected concepts</h3><ul>`;
+    connections.forEach(label => {
+      html += `<li>${label}</li>`;
+    });
+    html += `</ul>`;
+  }
+
+  sb.innerHTML = html;
+}
+
+function showSidebarPlaceholder() {
+  document.getElementById("sidebar").innerHTML =
+    '<p class="placeholder">Click any node in the graph to see its citation, description, and connections.</p>';
+}
+
+// ============================================================
+// Tabs
+// ============================================================
+function switchTab(tabNum) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", parseInt(t.dataset.tab) === tabNum);
+  });
+  showSidebarPlaceholder();
+  renderTab(tabNum);
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => switchTab(parseInt(t.dataset.tab)));
+});
+
+// ============================================================
+// Zoom controls
+// ============================================================
+document.getElementById("zoom-in").addEventListener("click", () => {
+  svg.transition().duration(220).call(zoom.scaleBy, 1.3);
+});
+document.getElementById("zoom-out").addEventListener("click", () => {
+  svg.transition().duration(220).call(zoom.scaleBy, 0.77);
+});
+document.getElementById("zoom-reset").addEventListener("click", () => {
+  svg.transition().duration(280).call(zoom.transform, d3.zoomIdentity);
+});
+
+// ============================================================
+// Resize
+// ============================================================
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => renderTab(currentTab), 180);
+});
+
+// ============================================================
+// Initial render
+// ============================================================
+renderTab(1);
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>More Degrees of Freedom Than Any Mechanism Can Govern · Ian McDermid</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>More Degrees of Freedom Than Any Mechanism Can Govern</h1>
+  <p class="subtitle">A Convergent Argument from Bernstein to the Inverted Pendulum</p>
+  <div class="meta">
+    <span>Ian McDermid</span>
+    <span class="course">Perception &amp; Action</span>
+    <span class="type">Spring 2026</span>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- COURSE PORTFOLIO · Sister projects                            -->
+<!-- ============================================================ -->
+<nav class="course-portfolio" aria-label="Other course projects">
+  <h2 class="portfolio-heading">Course Portfolio</h2>
+  <p class="portfolio-intro">This presentation draws on four prior projects from the same semester. Each is a standalone site.</p>
+  <div class="portfolio-grid">
+    <a class="portfolio-card" href="http://iangoescrunch.github.io/Dynamic-Systems-Approach/">
+      <span class="portfolio-tag">Deep analysis</span>
+      <span class="portfolio-title">Dynamic Systems Approach</span>
+      <span class="portfolio-desc">An analysis of Thelen and Smith's NDS framework with concept map and lineage.</span>
+      <span class="portfolio-arrow">→</span>
+    </a>
+    <a class="portfolio-card" href="http://iangoescrunch.github.io/Midterm-Madness/">
+      <span class="portfolio-tag">Critical reflection</span>
+      <span class="portfolio-title">Midterm Madness</span>
+      <span class="portfolio-desc">A midterm reflection on the poverty and the burden of embodied cognition.</span>
+      <span class="portfolio-arrow">→</span>
+    </a>
+    <a class="portfolio-card" href="http://iangoescrunch.github.io/Chaos-Theory-Models/">
+      <span class="portfolio-tag">Computational</span>
+      <span class="portfolio-title">Chaos Theory Models</span>
+      <span class="portfolio-desc">Visualizations of mathematical formulas from Gleick's <em>Chaos: Making a New Science</em>.</span>
+      <span class="portfolio-arrow">→</span>
+    </a>
+    <a class="portfolio-card" href="http://iangoescrunch.github.io/Emergence-Synthesis/">
+      <span class="portfolio-tag">Theoretical commentary</span>
+      <span class="portfolio-title">Emergence Synthesis</span>
+      <span class="portfolio-desc">A commentary on Jeffrey Goldstein's <em>Emergence as a construct: History and issues</em>.</span>
+      <span class="portfolio-arrow">→</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- SECTION 1 · Hook · Pendulum video                             -->
+<!-- ============================================================ -->
+<section id="hook" class="essay-section">
+
+  <!--
+    PENDULUM VIDEO
+    ==============
+    Replace the data-src below with the actual filename once uploaded
+    to the GitHub repo. The figure is set up for a 1080p (16:9) screen
+    capture. To embed:
+
+      1. Upload your video file (e.g., pendulum.mp4) to the repo root
+         or to a /videos subdirectory.
+      2. In the <video> tag below, change src="REPLACE_WITH_VIDEO.mp4"
+         to the relative path of your file.
+      3. If you also have a poster frame (a still image to show before
+         playback), set the poster attribute to that filename.
+
+    The aspect-ratio CSS rule keeps the player at 16:9 regardless of
+    container width. Controls are visible by default.
+  -->
+  <figure class="reflection-figure video-figure">
+    <video
+      controls
+      preload="metadata"
+      poster="REPLACE_WITH_POSTER.jpg"
+      style="width:100%; aspect-ratio: 16/9; background:#000; border-radius:6px;">
+      <source src="REPLACE_WITH_VIDEO.mp4" type="video/mp4">
+      Your browser does not support embedded video. The presentation
+      includes a clip of the Inha University triple inverted pendulum
+      recovering from a manual disturbance.
+    </video>
+    <figcaption>
+      Triple inverted pendulum on a belt-driven cart, Inha University.
+      A reinforcement-learning controller recovers the system to its
+      setpoint after a manual disturbance. From Baek et al. (2024).
+    </figcaption>
+  </figure>
+
+  <p>The standing human body is a kinematic chain of articulated segments with multiple rotational degrees of freedom at each joint (Günther &amp; Wagner, 2016). A triple inverted pendulum on a cart is a kinematic chain of three articulated links and one translational base. Both systems are underactuated, nonlinear, and unstable. Both must remain upright through some combination of internal coordination and reactive coupling with their environment. Bernstein (1967) called this the degrees-of-freedom problem and posed it as the central problem of motor coordination: how does a system with redundant peripheral degrees of freedom converge on functional behavior without an executive subsystem capable of specifying every joint angle in advance? This essay argues that the answer Bernstein required is the answer this semester's readings have been converging on, that the convergence is the appropriate ground for a personal theoretical orientation, and that the inverted pendulum is the contemporary engineering exhibit of that convergence.</p>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2 · Single-cause failure · Biomechanics figure        -->
+<!-- ============================================================ -->
+<section id="single-cause" class="essay-section">
+
+  <h2>The Failure of Single-Cause Explanation</h2>
+
+  <figure class="book-figure">
+    <img src="figures/triple-pendulum-body.webp"
+         alt="Body segment biomechanical model: head-arms-trunk, thigh, shank, and foot, with joint torques and angles. Right side shows the abstracted multi-link inverted pendulum equivalent.">
+    <figcaption>
+      The standing human body modeled as a multi-link kinematic chain.
+      Segments: foot, shank, thigh, and head-arms-trunk (HAT). Joint
+      torques (M<sub>ij</sub>) and angles (φ) define the system's state
+      space. The right panel reduces the body to its abstracted inverted
+      pendulum equivalent. Reproduced from Günther and Wagner (2016).
+    </figcaption>
+  </figure>
+
+  <p>Thelen and Smith (1994) opened <em>A Dynamic Systems Approach to the Development of Cognition and Action</em> with a developmental puzzle that no single-cause account could resolve. Newborn stepping disappears around two months and reappears upon independent walking near the end of the first year. The standard maturationist explanation attributed the disappearance to cortical inhibition of a brainstem reflex, followed by cortical control. The empirical record refutes the account. Stepping persists supine after it has vanished upright. Submersion in water restores stepping in infants who no longer step in air. Weight gain predicts decline. Treadmills produce coordinated alternating stepping in seven-month-olds who do not step on their own. The pattern of evidence is inconsistent with a single neural cause and consistent with a coordination problem whose solution depends on the coupled dynamics of muscle, mass, posture, and surface (Thelen &amp; Smith, 1994, Ch. 1).</p>
+
+  <p>Goldinger et al. (2016) applied the same explanatory standard to embodied cognition and reached a parallel verdict. The framework as ordinarily stated was vague at the level of definition, promiscuous at the level of method, and unable to generate formal models that distinguish embodied predictions from non-embodied alternatives. Marcus (2001, 2018) has run the structurally similar argument against eliminative connectionism for two decades. Architectures that fail systematic out-of-distribution generalization are not adequate explanations of cognition regardless of how impressive their in-distribution behavior appears. The methodological lesson is symmetric. Adequate explanation requires formal specification, falsifiable predictions, and behavior accounted for at the level it actually unfolds.</p>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3 · Soft assembly · Lineage diagram                   -->
+<!-- ============================================================ -->
+<section id="soft-assembly" class="essay-section">
+
+  <h2>Soft Assembly and the Mathematics of Coupling</h2>
+
+  <p>Kugler, Kelso, and Turvey (1980) articulated the constructive answer Bernstein required under the framework of coordinative structures and dissipative dynamics. Coordination, on this view, is not the imposition of a stored solution onto a passive periphery. It is the soft assembly of behavior from available biomechanical and neural components, under the constraints of the task and the environment, governed by the same self-organizing principles that produce coherent structure in non-equilibrium physical systems. Thelen and Smith (1994) operationalized soft assembly across a developmental program. Reaching, stepping, and the A-not-B error (Thelen et al., 2001) became trajectories of a coupled brain–body–environment system through a state space whose stable behaviors are attractors and whose qualitative transitions are bifurcations.</p>
+
+  <p>Gleick (1987) supplied the mathematics that licenses the vocabulary. Lorenz's discovery that simple deterministic equations could generate aperiodic, sensitively-dependent trajectories, May's logistic map and its period-doubling cascade, and Feigenbaum's universality constants together established that the structure of nonlinear dynamics is substrate-independent. The same attractor geometry that organizes fluid convection organizes infant reaching. The claim is not analogical. It is the formal observation that systems of sufficient nonlinearity converge on a small family of dynamical regimes regardless of their physical realization (Lorenz, 1963).</p>
+
+  <figure class="reflection-figure interactive">
+    <iframe src="lineage.html"
+            title="Theory lineage timeline"
+            loading="lazy"
+            style="height: 620px;"></iframe>
+    <figcaption>
+      Four streams of theoretical work converge on the hybrid position
+      defended below. Hover any node for citation; click for description.
+    </figcaption>
+  </figure>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4 · Convergence across scales                         -->
+<!-- ============================================================ -->
+<section id="convergence" class="essay-section">
+
+  <h2>Convergence Across Scales</h2>
+
+  <p>West (2017) extended the argument across orders of magnitude. The quarter-power scaling laws that govern metabolic rate across mammalian body sizes derive not from properties of any single organ but from the optimization of space-filling, hierarchical distribution networks under three principles, none of which are stored anywhere in the system. The same network logic generates superlinear scaling in cities and finite-time singularities in unbounded growth. Macro-level regularities emerge from the local-rule-following interactions of many components. Anderson (1972) made the case for this kind of explanation in physics: at each level of organization, new properties appear that cannot be deduced from the properties of the level below, and the methods adequate for one level fail at the next. Reductionism, as a research program, does not entail constructionism, the inverse claim that knowledge of fundamental laws permits reconstruction of higher-level phenomena. The whole is not only different from the sum of the parts; the whole requires its own explanatory vocabulary.</p>
+
+  <p>Goldstein (1999) dissolved the philosophical objection that has dogged this kind of explanation since Anderson (1972). Following Bedau's (1997) account of weak emergence and the taxonomy later refined by Chalmers (2006), Goldstein argued that emergence is metaphysically modest, compatible with physicalism, and scientifically indispensable. A property is weakly emergent when it can be derived from an underlying mechanism only by simulation or observation, not by analytic reduction. Macro-level explanations of weakly emergent phenomena do work that micro-level explanations cannot do, even when the micro-level is causally complete. Favela and Amon (2023) extended the resolution back into cognitive science, arguing that ecological psychology and complexity science share the same explanatory commitments and that the methodological tools of complexity science (recurrence analysis, fractal dimension, multi-scale entropy) provide the formal apparatus that ecological psychology had previously lacked.</p>
+
+  <p>Chemero (2003, 2009) supplied the ontology. An agent and its environment are one coupled dynamical system. Affordances are relations between organism and environment, not features of either alone. Cognition, on this account, is the trajectory of the coupled system through state space.</p>
+
+  <figure class="reflection-figure interactive">
+    <iframe src="concept-map.html"
+            title="Concept map of the convergent argument"
+            loading="lazy"
+            style="height: 720px;"></iframe>
+    <figcaption>
+      Concept map organized into four thematic tabs that mirror the
+      argument of the essay. Click any node for its citation, description,
+      and connections within and across tabs.
+    </figcaption>
+  </figure>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5 · Hybrid position                                   -->
+<!-- ============================================================ -->
+<section id="hybrid" class="essay-section">
+
+  <h2>The Hybrid Position</h2>
+
+  <p>The convergence is not a victory for radical dynamicism. Marcus (2001, 2018) has continued to identify a constraint that the dynamical literature cannot wave away. Systems that produce reliable, generalizing behavior across novel inputs require functional internal structure, that is, parameter settings, learned weights, and organized state spaces that can be inspected, learned, and falsified. Even van Gelder's (1995) Watt governor, the canonical exemplar of the dynamical hypothesis, was argued by Eliasmith (1997) and Bechtel (1998) to be too simple to bear the explanatory weight that ecological dynamicism placed on it. The mature position is therefore a hybrid. The dynamical apparatus is correct about the level at which behavior unfolds and the geometry that organizes it. The structuralist apparatus is correct that adequate explanation of generalization requires functional internal organization. Internal organization and coupled dynamics are levels of description of one system, not competing ontologies.</p>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6 · Theoretical orientation · Plotly attractor        -->
+<!-- ============================================================ -->
+<section id="orientation" class="essay-section">
+
+  <h2>Theoretical Orientation</h2>
+
+  <p>My theoretical orientation is a hybrid model in this sense. Cognition is the trajectory of a coupled brain–body–environment system, governed by attractors and constrained by control parameters, whose internal organization is functionally specifiable and falsifiable. The Inha University inverted pendulum is the working engineering exhibit. A neural controller trained by reinforcement learning recovers the pendulum to its setpoints under perturbation through real-time sensorimotor coupling, while its weights constitute the structured internal organization the recovery requires (Baek et al., 2024). My thesis work applies the framework to human exploration–exploitation behavior under threat to employment, with dynamical dependent variables, intolerance for ambiguity as a moderator, and an agent-based model whose predictions are calibrated against human behavioral data and open to falsification.</p>
+
+  <figure class="reflection-figure interactive">
+    <iframe src="lever_attractor_landscape.html"
+            title="Attractor landscape model"
+            loading="lazy"
+            style="height: 720px;"></iframe>
+    <figcaption>
+      Interactive attractor landscape. Trajectories settle into basins
+      of attraction whose geometry reflects the control parameters of
+      the coupled system.
+    </figcaption>
+  </figure>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- REFERENCES                                                    -->
+<!-- ============================================================ -->
+<section id="references" class="essay-section references">
+
+  <h2>References</h2>
+
+  <p class="ref">Anderson, P. W. (1972). More is different. <em>Science</em>, <em>177</em>(4047), 393–396. <a href="https://doi.org/10.1126/science.177.4047.393">https://doi.org/10.1126/science.177.4047.393</a></p>
+
+  <p class="ref">Baek, J., Lee, C., Lee, Y. S., Jeon, S., &amp; Han, S. (2024). Reinforcement learning to achieve real-time control of triple inverted pendulum. <em>Engineering Applications of Artificial Intelligence</em>, <em>128</em>, 107518. <a href="https://doi.org/10.1016/j.engappai.2023.107518">https://doi.org/10.1016/j.engappai.2023.107518</a></p>
+
+  <p class="ref">Bechtel, W. (1998). Representations and cognitive explanations: Assessing the dynamicist's challenge in cognitive science. <em>Cognitive Science</em>, <em>22</em>(3), 295–318. <a href="https://doi.org/10.1207/s15516709cog2203_2">https://doi.org/10.1207/s15516709cog2203_2</a></p>
+
+  <p class="ref">Bedau, M. A. (1997). Weak emergence. <em>Philosophical Perspectives</em>, <em>11</em>, 375–399. <a href="https://doi.org/10.1111/0029-4624.31.s11.17">https://doi.org/10.1111/0029-4624.31.s11.17</a></p>
+
+  <p class="ref">Bernstein, N. A. (1967). <em>The co-ordination and regulation of movements</em>. Pergamon Press.</p>
+
+  <p class="ref">Chalmers, D. J. (2006). Strong and weak emergence. In P. Clayton &amp; P. Davies (Eds.), <em>The re-emergence of emergence</em> (pp. 244–254). Oxford University Press.</p>
+
+  <p class="ref">Chemero, A. (2003). An outline of a theory of affordances. <em>Ecological Psychology</em>, <em>15</em>(2), 181–195. <a href="https://doi.org/10.1207/S15326969ECO1502_5">https://doi.org/10.1207/S15326969ECO1502_5</a></p>
+
+  <p class="ref">Chemero, A. (2009). <em>Radical embodied cognitive science</em>. MIT Press.</p>
+
+  <p class="ref">Eliasmith, C. (1997). Computation and dynamical models of mind. <em>Minds and Machines</em>, <em>7</em>(4), 531–541. <a href="https://doi.org/10.1023/A:1008296514437">https://doi.org/10.1023/A:1008296514437</a></p>
+
+  <p class="ref">Favela, L. H., &amp; Amon, M. J. (2023). Reframing cognitive science as a complexity science. <em>Cognitive Science</em>, <em>47</em>(4), e13280. <a href="https://doi.org/10.1111/cogs.13280">https://doi.org/10.1111/cogs.13280</a></p>
+
+  <p class="ref">Gleick, J. (1987). <em>Chaos: Making a new science</em>. Viking.</p>
+
+  <p class="ref">Goldinger, S. D., Papesh, M. H., Barnhart, A. S., Hansen, W. A., &amp; Hout, M. C. (2016). The poverty of embodied cognition. <em>Psychonomic Bulletin &amp; Review</em>, <em>23</em>(4), 959–978. <a href="https://doi.org/10.3758/s13423-015-0860-1">https://doi.org/10.3758/s13423-015-0860-1</a></p>
+
+  <p class="ref">Goldstein, J. (1999). Emergence as a construct: History and issues. <em>Emergence</em>, <em>1</em>(1), 49–72. <a href="https://doi.org/10.1207/s15327000em0101_4">https://doi.org/10.1207/s15327000em0101_4</a></p>
+
+  <p class="ref">Günther, M., &amp; Wagner, H. (2016). Dynamics of quiet human stance: Computer simulations of a triple inverted pendulum model. <em>Computer Methods in Biomechanics and Biomedical Engineering</em>, <em>19</em>(8), 819–834. <a href="https://doi.org/10.1080/10255842.2015.1067306">https://doi.org/10.1080/10255842.2015.1067306</a></p>
+
+  <p class="ref">Kugler, P. N., Kelso, J. A. S., &amp; Turvey, M. T. (1980). On the concept of coordinative structures as dissipative structures: I. Theoretical lines of convergence. In G. E. Stelmach &amp; J. Requin (Eds.), <em>Tutorials in motor behavior</em> (pp. 3–47). North-Holland.</p>
+
+  <p class="ref">Lorenz, E. N. (1963). Deterministic nonperiodic flow. <em>Journal of the Atmospheric Sciences</em>, <em>20</em>(2), 130–141. <a href="https://doi.org/10.1175/1520-0469(1963)020%3C0130:DNF%3E2.0.CO;2">https://doi.org/10.1175/1520-0469(1963)020&lt;0130:DNF&gt;2.0.CO;2</a></p>
+
+  <p class="ref">Marcus, G. F. (2001). <em>The algebraic mind: Integrating connectionism and cognitive science</em>. MIT Press.</p>
+
+  <p class="ref">Marcus, G. (2018). Deep learning: A critical appraisal. <em>arXiv</em>. <a href="https://doi.org/10.48550/arXiv.1801.00631">https://doi.org/10.48550/arXiv.1801.00631</a></p>
+
+  <p class="ref">Thelen, E., &amp; Smith, L. B. (1994). <em>A dynamic systems approach to the development of cognition and action</em>. MIT Press.</p>
+
+  <p class="ref">Thelen, E., Schöner, G., Scheier, C., &amp; Smith, L. B. (2001). The dynamics of embodiment: A field theory of infant perseverative reaching. <em>Behavioral and Brain Sciences</em>, <em>24</em>(1), 1–34. <a href="https://doi.org/10.1017/S0140525X01003910">https://doi.org/10.1017/S0140525X01003910</a></p>
+
+  <p class="ref">van Gelder, T. (1995). What might cognition be, if not computation? <em>The Journal of Philosophy</em>, <em>92</em>(7), 345–381. <a href="https://doi.org/10.2307/2941061">https://doi.org/10.2307/2941061</a></p>
+
+  <p class="ref">West, G. B. (2017). <em>Scale: The universal laws of growth, innovation, sustainability, and the pace of life in organisms, cities, economies, and companies</em>. Penguin.</p>
+
+</section>
+
+<footer class="main-footer">
+  <p>Ian McDermid · Final Presentation, Perception &amp; Action · Spring 2026</p>
+</footer>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

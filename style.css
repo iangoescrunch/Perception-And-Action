@@ -23,7 +23,7 @@
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
     --maxw-prose: 680px;
-    --maxw-figure: 860px;
+    --maxw-figure: 1020px;
     --maxw-container: 1080px;
 }
 

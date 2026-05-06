@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Theory Lineage · Four Streams Converging on a Hybrid Position</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #faf6ef;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #3a3633;
+    --ink-muted: #7a716a;
+    --rule: #e3dccf;
+    --accent: #9c3d1f;
+    --serif: 'Crimson Pro', Georgia, serif;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', Menlo, monospace;
+    --stream-a: #9c3d1f;
+    --stream-b: #2c5d6e;
+    --stream-c: #4a6b3d;
+    --stream-d: #5d4a6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  header {
+    padding: 0.75rem 1.25rem 0.55rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.15rem;
+  }
+
+  header p {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  main {
+    flex: 1;
+    position: relative;
+    background: var(--paper);
+    min-height: 0;
+  }
+
+  #graph {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .stream-band {
+    fill: rgba(0, 0, 0, 0.012);
+  }
+
+  .stream-band.alt {
+    fill: rgba(0, 0, 0, 0.025);
+  }
+
+  .stream-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stream-track {
+    fill: none;
+    stroke-opacity: 0.35;
+    stroke-width: 2;
+  }
+
+  .convergence-line {
+    fill: none;
+    stroke-opacity: 0.45;
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  .work-node { cursor: pointer; }
+
+  .work-node circle {
+    stroke: var(--surface);
+    stroke-width: 2;
+    transition: r 0.15s ease, stroke-width 0.15s ease;
+  }
+
+  .work-node:hover circle {
+    stroke-width: 3;
+    r: 8;
+  }
+
+  .work-year {
+    font-family: var(--mono);
+    font-size: 9px;
+    fill: var(--ink-muted);
+    text-anchor: middle;
+    pointer-events: none;
+    letter-spacing: 0.04em;
+  }
+
+  .work-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    fill: var(--ink);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  .convergence-node circle {
+    stroke: var(--surface);
+    stroke-width: 3;
+  }
+
+  .convergence-node text {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--ink);
+    pointer-events: none;
+    letter-spacing: -0.01em;
+    text-anchor: middle;
+  }
+
+  .convergence-sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    fill: var(--ink-muted);
+    text-anchor: middle;
+    pointer-events: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  #tooltip {
+    position: absolute;
+    background: rgba(26, 26, 26, 0.96);
+    color: var(--paper);
+    padding: 0.7rem 0.95rem;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    max-width: 320px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 100;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  #tooltip.visible { opacity: 1; }
+
+  #tooltip .tt-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+
+  #tooltip .tt-cite {
+    font-family: var(--serif);
+    font-style: italic;
+    color: rgba(250, 246, 239, 0.7);
+    font-size: 0.75rem;
+    margin-bottom: 0.45rem;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Theory Lineage · Four Streams Converging on a Hybrid Position</h1>
+    <p>Hover any node for citation and description. Years are labeled above each work.</p>
+  </header>
+  <main>
+    <svg id="graph" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="tooltip"></div>
+  </main>
+</div>
+
+<script>
+const STREAMS = [
+  {
+    id: "A",
+    label: "Pragmatist · Field · Ecological",
+    color: "#9c3d1f",
+    labelsAbove: false,
+    works: [
+      { year: 1890, label: "James", citation: "James (1890). Principles of Psychology", description: "American naturalist psychology. Stream of consciousness, pragmatism, functionalism. The intellectual headwater of ecological and embodied approaches." },
+      { year: 1936, label: "Lewin", citation: "Lewin (1936). Principles of Topological Psychology", description: "Field theory in psychology. Behavior as a function of person and environment, B = f(P,E), formalized as a vector field over psychological space. Antecedent of dynamical systems thinking in psychology." },
+      { year: 1979, label: "Gibson", citation: "Gibson (1979). The Ecological Approach to Visual Perception", description: "Founded ecological psychology. Direct perception, affordances as opportunities for action, anti-representationalism. Perception is for action, not for inference." },
+      { year: 2009, label: "Chemero", citation: "Chemero (2009). Radical Embodied Cognitive Science", description: "Synthesized ecological psychology with dynamical systems theory. Agent and environment as one coupled dynamical system. The contemporary version of the Jamesian-Gibsonian program." }
+    ]
+  },
+  {
+    id: "B",
+    label: "Motor Control · Dynamical",
+    color: "#2c5d6e",
+    labelsAbove: false,
+    works: [
+      { year: 1933, label: "Lashley", citation: "Lashley (1933). Integrative functions of the cerebellum", description: "First articulated the motor equivalence problem. Set the stage for Bernstein's degrees-of-freedom problem." },
+      { year: 1967, label: "Bernstein", citation: "Bernstein (1967). The Co-ordination and Regulation of Movements", description: "Formalized the degrees-of-freedom problem. The body has too many independent variables for any executive controller. Coordination must therefore be solved without central enumeration." },
+      { year: 1980, label: "Kugler et al.", citation: "Kugler, Kelso, & Turvey (1980). On the concept of coordinative structures as dissipative structures", description: "Formalized Bernstein's question via coordinative structures and dissipative dynamics. Self-organization under task and biomechanical constraint as the answer to Bernstein." },
+      { year: 1994, label: "Thelen & Smith", citation: "Thelen & Smith (1994). A Dynamic Systems Approach to the Development of Cognition and Action", description: "Operationalized soft assembly across a developmental research program. Reaching, stepping, and the A-not-B error as trajectories of coupled brain-body-environment systems." },
+      { year: 2001, label: "Thelen et al.", citation: "Thelen, Schöner, Scheier, & Smith (2001). The dynamics of embodiment", description: "Dynamic field theory of infant perseverative reaching. Formal mathematical model demonstrating that a developmental phenomenon long treated as evidence about object concepts emerges from coupled real-time dynamics." }
+    ]
+  },
+  {
+    id: "C",
+    label: "Chaos · Complexity",
+    color: "#4a6b3d",
+    labelsAbove: true,
+    works: [
+      { year: 1963, label: "Lorenz", citation: "Lorenz (1963). Deterministic nonperiodic flow", description: "Discovered that simple deterministic equations can generate aperiodic, sensitively dependent trajectories. The Lorenz attractor became the canonical strange attractor." },
+      { year: 1972, label: "Anderson", citation: "Anderson (1972). More is different", description: "Argued that reductionism does not entail constructionism. At each level of organization, new properties emerge that the level below cannot predict. Each level needs its own explanatory vocabulary." },
+      { year: 1978, label: "Feigenbaum", citation: "Feigenbaum (1978). Quantitative universality", description: "Discovered universal constants in the period-doubling route to chaos. Established that nonlinear dynamics has substrate-independent structure." },
+      { year: 1987, label: "Gleick", citation: "Gleick (1987). Chaos: Making a New Science", description: "Synthesized the chaos research program for a general audience. Established that nonlinear dynamics constitutes a coherent science with its own methods." },
+      { year: 1997, label: "Bedau", citation: "Bedau (1997). Weak emergence", description: "Distinguished weak from strong emergence. Weak emergence is metaphysically modest, compatible with physicalism, and scientifically indispensable." },
+      { year: 1999, label: "Goldstein", citation: "Goldstein (1999). Emergence as a construct", description: "Reframed emergence as a scientifically respectable construct. Macro-level explanation does work that micro-level explanation cannot do, even when the micro-level is causally complete." },
+      { year: 2017, label: "West", citation: "West (2017). Scale", description: "Quarter-power scaling laws across mammalian metabolic rate. Network optimization principles generate macro-level regularities from local rules. Same logic produces superlinear scaling in cities." },
+      { year: 2023, label: "Favela & Amon", citation: "Favela & Amon (2023). Reframing cognitive science as a complexity science", description: "Argued that cognitive science is best understood as a complexity science. Recurrence analysis, fractal dimension, and multi-scale entropy provide formal apparatus that ecological psychology had previously lacked." }
+    ]
+  },
+  {
+    id: "D",
+    label: "Symbolic · Critical",
+    color: "#5d4a6b",
+    labelsAbove: false,
+    works: [
+      { year: 1988, label: "Fodor & Pylyshyn", citation: "Fodor & Pylyshyn (1988). Connectionism and cognitive architecture", description: "Argued that connectionism cannot account for the systematicity of thought. Set the constraint that any adequate cognitive theory must satisfy." },
+      { year: 1995, label: "van Gelder", citation: "van Gelder (1995). What might cognition be, if not computation?", description: "Proposed the dynamical hypothesis. Cognition as the behavior of a non-computational dynamical system. Used the Watt governor as the conceptual exemplar." },
+      { year: 1997, label: "Eliasmith", citation: "Eliasmith (1997). Computation and dynamical models of mind", description: "Critiqued van Gelder's dynamicism. The Watt governor is too simple to bear the explanatory weight cognition demands." },
+      { year: 1998, label: "Bechtel", citation: "Bechtel (1998). Representations and cognitive explanations", description: "Argued that even Beer's evolved dynamical agents develop internal configurations that play standing-in roles for environmental features." },
+      { year: 2001, label: "Marcus", citation: "Marcus (2001). The Algebraic Mind", description: "Argued that connectionism without symbolic structure cannot account for systematic generalization. Architectures that fail out-of-distribution are not adequate explanations of cognition." },
+      { year: 2016, label: "Goldinger et al.", citation: "Goldinger et al. (2016). The poverty of embodied cognition", description: "Applied a falsificationist standard to embodied cognition. Argued the framework was too vague to falsify and too promiscuous to distinguish empirically from non-embodied alternatives." },
+      { year: 2018, label: "Marcus", citation: "Marcus (2018). Deep learning: A critical appraisal", description: "Extended the algebraic-mind critique to deep learning. Pattern matching at scale is not reasoning. Out-of-distribution generalization remains the unsolved problem." }
+    ]
+  }
+];
+
+const CONVERGENCE = {
+  label: "Hybrid Model",
+  sub: "Coupled Dynamics + Functional Structure",
+  description: "Coupled brain-body-environment dynamics with functional internal organization. The dynamical apparatus is correct about the level at which behavior unfolds. The structural apparatus is correct that adequate generalization requires inspectable internal organization. Levels of description, not competing ontologies."
+};
+
+const svg = d3.select("#graph");
+const tooltip = d3.select("#tooltip");
+let width, height;
+
+function render() {
+  const c = document.querySelector("main");
+  width = c.clientWidth;
+  height = c.clientHeight;
+
+  // Use viewBox sizing for responsive SVG
+  svg.attr("viewBox", [0, 0, width, height])
+     .attr("width", width)
+     .attr("height", height);
+
+  svg.selectAll("*").remove();
+
+  const margin = { top: 22, right: 170, bottom: 28, left: 168 };
+  const innerW = Math.max(400, width - margin.left - margin.right);
+  const innerH = Math.max(300, height - margin.top - margin.bottom);
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Lane height
+  const laneH = innerH / STREAMS.length;
+
+  // Piecewise time scale: compress pre-1960, expand post-1960
+  // 1890 -> 0
+  // 1960 -> 0.20 * innerW
+  // 2026 -> innerW
+  const xScale = d3.scaleLinear()
+    .domain([1890, 1960, 2026])
+    .range([0, 0.20 * innerW, innerW])
+    .clamp(true);
+
+  const convergenceX = innerW + 50;
+  const convergenceY = innerH / 2;
+
+  // Stream lane backgrounds (subtle alternating)
+  STREAMS.forEach((stream, i) => {
+    g.append("rect")
+      .attr("class", i % 2 === 0 ? "stream-band" : "stream-band alt")
+      .attr("x", -margin.left + 10)
+      .attr("y", i * laneH)
+      .attr("width", innerW + margin.right + margin.left - 20)
+      .attr("height", laneH);
+  });
+
+  // Stream labels (left side)
+  STREAMS.forEach((stream, i) => {
+    const yMid = i * laneH + laneH / 2;
+    const labelG = g.append("g")
+      .attr("transform", `translate(${-12},${yMid})`);
+
+    const parts = stream.label.split(" · ");
+    parts.forEach((part, j) => {
+      labelG.append("text")
+        .attr("class", "stream-label")
+        .attr("x", 0)
+        .attr("y", (j - (parts.length - 1) / 2) * 14)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "middle")
+        .attr("fill", stream.color)
+        .text(part);
+    });
+  });
+
+  // Decade tick marks (subtle)
+  const decadeTicks = [1900, 1920, 1940, 1960, 1980, 2000, 2020];
+  decadeTicks.forEach(year => {
+    g.append("line")
+      .attr("x1", xScale(year))
+      .attr("x2", xScale(year))
+      .attr("y1", 0)
+      .attr("y2", innerH)
+      .attr("stroke", "#e3dccf")
+      .attr("stroke-dasharray", "1 3")
+      .attr("stroke-opacity", 0.7);
+
+    g.append("text")
+      .attr("class", "work-year")
+      .attr("x", xScale(year))
+      .attr("y", innerH + 16)
+      .attr("fill", "#a89e90")
+      .text(year);
+  });
+
+  // Draw stream connecting lines
+  STREAMS.forEach((stream, i) => {
+    const yMid = i * laneH + laneH / 2;
+    const points = stream.works.map(w => [xScale(w.year), yMid]);
+
+    if (points.length > 1) {
+      const lineGen = d3.line()
+        .x(d => d[0])
+        .y(d => d[1])
+        .curve(d3.curveMonotoneX);
+
+      g.append("path")
+        .datum(points)
+        .attr("class", "stream-track")
+        .attr("stroke", stream.color)
+        .attr("d", lineGen);
+    }
+
+    // Convergence line: last node to convergence point
+    const lastWork = stream.works[stream.works.length - 1];
+    g.append("path")
+      .attr("class", "convergence-line")
+      .attr("stroke", stream.color)
+      .attr("d", `M ${xScale(lastWork.year)} ${yMid} Q ${(xScale(lastWork.year) + convergenceX) / 2} ${yMid}, ${convergenceX} ${convergenceY}`);
+  });
+
+  // Resolve label collisions within each stream
+  // Group nodes whose x positions are too close, and stagger their labels vertically
+  STREAMS.forEach((stream, streamIndex) => {
+    const yMid = streamIndex * laneH + laneH / 2;
+    const minSpacingPx = 70;
+    const above = !!stream.labelsAbove;
+
+    // Sort by x, then assign label rows to avoid overlap
+    const positioned = stream.works.map(w => ({
+      ...w,
+      x: xScale(w.year),
+      labelRow: 0
+    })).sort((a, b) => a.x - b.x);
+
+    // Assign rows: each subsequent node within minSpacingPx of the previous gets the next row
+    for (let i = 1; i < positioned.length; i++) {
+      const prev = positioned[i - 1];
+      if (positioned[i].x - prev.x < minSpacingPx) {
+        positioned[i].labelRow = (prev.labelRow + 1) % 2;
+      }
+    }
+
+    const workG = g.append("g")
+      .selectAll("g")
+      .data(positioned)
+      .join("g")
+      .attr("class", "work-node")
+      .attr("transform", d => `translate(${d.x},${yMid})`)
+      .on("mouseenter", (event, d) => {
+        tooltip.classed("visible", true)
+          .html(`<div class="tt-title">${d.label} (${d.year})</div>
+                 <div class="tt-cite">${d.citation}</div>
+                 <div>${d.description}</div>`);
+      })
+      .on("mousemove", event => {
+        const tw = 320, th = 160;
+        let x = event.pageX + 14;
+        let y = event.pageY + 14;
+        if (x + tw > window.innerWidth) x = event.pageX - tw - 14;
+        if (y + th > window.innerHeight) y = event.pageY - th - 14;
+        tooltip.style("left", x + "px").style("top", y + "px");
+      })
+      .on("mouseleave", () => tooltip.classed("visible", false));
+
+    workG.append("circle")
+      .attr("r", 6)
+      .attr("fill", stream.color);
+
+    if (above) {
+      // Year stays just below the dot; author label sits above the dot
+      workG.append("text")
+        .attr("class", "work-year")
+        .attr("y", 18)
+        .text(d => d.year);
+
+      workG.append("text")
+        .attr("class", "work-label")
+        .attr("y", d => -14 - (d.labelRow * 14))
+        .text(d => d.label);
+    } else {
+      // Default: year above, author label below (stagger downward when dense)
+      workG.append("text")
+        .attr("class", "work-year")
+        .attr("y", -14)
+        .text(d => d.year);
+
+      workG.append("text")
+        .attr("class", "work-label")
+        .attr("y", d => 22 + (d.labelRow * 14))
+        .text(d => d.label);
+    }
+  });
+
+  // Convergence node
+  const convG = g.append("g")
+    .attr("class", "convergence-node")
+    .attr("transform", `translate(${convergenceX},${convergenceY})`)
+    .style("cursor", "pointer")
+    .on("mouseenter", (event) => {
+      tooltip.classed("visible", true)
+        .html(`<div class="tt-title">${CONVERGENCE.label}</div>
+               <div>${CONVERGENCE.description}</div>`);
+    })
+    .on("mousemove", event => {
+      const tw = 320, th = 160;
+      let x = event.pageX - tw - 14;
+      let y = event.pageY + 14;
+      if (y + th > window.innerHeight) y = event.pageY - th - 14;
+      tooltip.style("left", x + "px").style("top", y + "px");
+    })
+    .on("mouseleave", () => tooltip.classed("visible", false));
+
+  convG.append("circle")
+    .attr("r", 14)
+    .attr("fill", "#1a1a1a");
+
+  convG.append("text")
+    .attr("y", -22)
+    .text(CONVERGENCE.label);
+
+  convG.append("text")
+    .attr("class", "convergence-sub")
+    .attr("y", 32)
+    .text(CONVERGENCE.sub);
+}
+
+render();
+
+// Debounced resize
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 150);
+});
+</script>
+</body>
+</html>
